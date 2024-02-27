@@ -622,8 +622,8 @@ int client_decrypt_(client_context_t *context,
 	byte nonce[12];
 	memset(nonce, 0, sizeof(nonce));
 
-	int payload_offset = 0;
-	int decrypted_offset = 0;
+	size_t payload_offset = 0;
+	size_t decrypted_offset = 0;
 
 	while (payload_offset < payload_size) {
 		size_t chunk_size = payload[payload_offset] + payload[payload_offset + 1] * 256;
