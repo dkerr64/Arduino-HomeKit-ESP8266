@@ -563,7 +563,7 @@ int client_send_encrypted_(client_context_t *context,
 	memset(nonce, 0, sizeof(nonce));
 
 	byte encrypted[1024 + 18];
-	int payload_offset = 0;
+	size_t payload_offset = 0;
 
 	while (payload_offset < size) {
 		size_t chunk_size = size - payload_offset;
