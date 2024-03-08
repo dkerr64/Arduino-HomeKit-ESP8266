@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 #include "constants.h"
-#include "base64_util.h"
+#include "base64_utilities.h"
 #include "crypto.h"
 #include "pairing.h"
 #include "storage.h"
