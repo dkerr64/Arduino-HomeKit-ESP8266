@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/base64_util.c
-#include "base64_util.h"
-========
 #include "base64_utilities.h"
->>>>>>>> bc1959338d18caffdb3bc18ce7eb5cf72175926e:src/base64_utilities.c
 
 static unsigned char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
