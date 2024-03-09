@@ -10,9 +10,9 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/JKoss2/Arduino-HomeKit-ESP8266.git"
+    "url": "https://github.com/dkerr64/Arduino-HomeKit-ESP8266.git"
   },
-  "version": "1.4.0",
+  "version": "1.5.0",
   "license": "MIT",
   "frameworks": "arduino",
   "platforms": "espressif8266",

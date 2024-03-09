@@ -2990,6 +2990,13 @@ client_context_t* homekit_server_accept_client(homekit_server_t *server) {
 			delete wifiClient;
 			return NULL;
 		}
+		if (!wifiClient->localIP().isSet() ||
+			!wifiClient->remoteIP().isSet()) {
+			INFO("wifiClient creation error, IP address is not set");
+			wifiClient->stop();
+			delete wifiClient;
+			return NULL;
+		}
 	} else {
 		return NULL;
 	}
