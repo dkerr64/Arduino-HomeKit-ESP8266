@@ -562,7 +562,9 @@ int client_send_encrypted_(client_context_t *context,
 	byte nonce[12];
 	memset(nonce, 0, sizeof(nonce));
 
-	byte encrypted[1024 + 18];
+#define ENCRYPTED_BUFFER_SIZE 1024
+#define AAD_SIZE 2
+	byte *encrypted = (byte*)malloc(ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
 	size_t payload_offset = 0;
 
 	while (payload_offset < size) {
@@ -581,19 +583,21 @@ int client_send_encrypted_(client_context_t *context,
 			x /= 256;
 		}
 
-		size_t available = sizeof(encrypted) - 2;
-		int r = crypto_chacha20poly1305_encrypt(context->read_key, nonce, aead, 2,
-				payload + payload_offset, chunk_size, encrypted + 2, &available);
+		size_t available = ENCRYPTED_BUFFER_SIZE + 16;
+		int r = crypto_chacha20poly1305_encrypt(context->read_key, nonce, aead, AAD_SIZE,
+				payload + payload_offset, chunk_size, encrypted + AAD_SIZE, &available);
 		if (r) {
 			ERROR("Failed to chacha encrypt payload (code %d)", r);
+			free(encrypted);
 			return -1;
 		}
 
 		payload_offset += chunk_size;
 
-		write(context, encrypted, available + 2);
+		write(context, encrypted, available + AAD_SIZE);
 	}
 
+	free(encrypted);
 	return 0;
 }
 
