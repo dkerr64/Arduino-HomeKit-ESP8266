@@ -536,7 +536,7 @@ void write(client_context_t *context, byte *data, int data_size) {
 	CLIENT_DEBUG(context, "Sending data of size %d", data_size);
 	if (write_size != data_size) {
 		context->error_write = true;
-		context->socket->keepAlive(1, 1, 1);	// fast disconnected internally in 1 second.
+		//context->socket->keepAlive(1, 1, 1);	// fast disconnected internally in 1 second.
 		CLIENT_ERROR(context, "socket.write, data_size=%d, write_size=%d", data_size, write_size);
 	}
 
@@ -3010,7 +3010,7 @@ client_context_t* homekit_server_accept_client(homekit_server_t *server) {
 			wifiClient->remoteIP().toString().c_str(), wifiClient->remotePort());
 
 	wifiClient->keepAlive(HOMEKIT_SOCKET_KEEPALIVE_IDLE_SEC,
-	HOMEKIT_SOCKET_KEEPALIVE_INTERVAL_SEC, HOMEKIT_SOCKET_KEEPALIVE_IDLE_COUNT);
+        HOMEKIT_SOCKET_KEEPALIVE_INTERVAL_SEC, HOMEKIT_SOCKET_KEEPALIVE_IDLE_COUNT);
 	wifiClient->setNoDelay(true);
 	wifiClient->setSync(false);
 	wifiClient->setTimeout(HOMEKIT_SOCKET_TIMEOUT);
