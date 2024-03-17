@@ -7,7 +7,7 @@
 
 //skip ed25519_verify, see crypto_ed25519_verify in crypto.c
 //Pair Verify Step 2/2: skip=35ms, not-skip=794ms
-//#define ARDUINO_HOMEKIT_SKIP_ED25519_VERIFY
+#define ARDUINO_HOMEKIT_SKIP_ED25519_VERIFY
 
 #include "stdint.h"
 #include "stddef.h"
