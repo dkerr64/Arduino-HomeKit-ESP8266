@@ -647,6 +647,7 @@ int wc_SrpComputeKey(Srp* srp, byte* clientPubKey, word32 clientPubKeySz,
         r = mp_read_unsigned_bin(&temp1, srp->k, digestSz);
         if (!r) r = mp_iszero(&temp1) == MP_YES ? SRP_BAD_KEY_E : 0;
         if (!r) r = mp_exptmod(&srp->g, &srp->auth, &srp->N, &temp2);
+        optimistic_yield(1000);
         if (!r) r = mp_mulmod(&temp1, &temp2, &srp->N, &s);
         if (!r) r = mp_read_unsigned_bin(&temp2, serverPubKey, serverPubKeySz);
         if (!r) r = mp_iszero(&temp2) == MP_YES ? SRP_BAD_KEY_E : 0;
@@ -659,10 +660,12 @@ int wc_SrpComputeKey(Srp* srp, byte* clientPubKey, word32 clientPubKeySz,
 
         /* secret = temp1 ^ temp2 % N */
         if (!r) r = mp_exptmod(&temp1, &temp2, &srp->N, &s);
+        optimistic_yield(1000);
 
     } else if (!r && srp->side == SRP_SERVER_SIDE) {
         /* temp1 = v ^ u % N */
         r = mp_exptmod(&srp->auth, &u, &srp->N, &temp1);
+        optimistic_yield(1000);
 
         /* temp2 = A * temp1 % N; rejects A == 0, A >= N */
         if (!r) r = mp_read_unsigned_bin(&s, clientPubKey, clientPubKeySz);
@@ -678,6 +681,7 @@ int wc_SrpComputeKey(Srp* srp, byte* clientPubKey, word32 clientPubKeySz,
 
         /* secret = temp2 * b % N */
         if (!r) r = mp_exptmod(&temp2, &srp->priv, &srp->N, &s);
+        optimistic_yield(1000);
     }
 
     /* building session key from secret */

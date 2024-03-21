@@ -3010,11 +3010,19 @@ client_context_t* homekit_server_accept_client(homekit_server_t *server) {
 			wifiClient->localIP().toString().c_str(), wifiClient->localPort(),
 			wifiClient->remoteIP().toString().c_str(), wifiClient->remotePort());
 
-	wifiClient->keepAlive(HOMEKIT_SOCKET_KEEPALIVE_IDLE_SEC,
-        HOMEKIT_SOCKET_KEEPALIVE_INTERVAL_SEC, HOMEKIT_SOCKET_KEEPALIVE_IDLE_COUNT);
 	wifiClient->setNoDelay(true);
 	wifiClient->setSync(true);
-	wifiClient->setTimeout(HOMEKIT_SOCKET_TIMEOUT);
+	if (server->paired) {
+		wifiClient->keepAlive(HOMEKIT_SOCKET_KEEPALIVE_IDLE_SEC,
+			HOMEKIT_SOCKET_KEEPALIVE_INTERVAL_SEC, HOMEKIT_SOCKET_KEEPALIVE_IDLE_COUNT);
+		wifiClient->setTimeout(HOMEKIT_SOCKET_TIMEOUT);
+		INFO("Setting Timeout to 500ms");
+	} else {
+		// During the pairing process, relax the session timeout and be more agressive about keepalives
+		wifiClient->keepAlive(5, 5, 20);
+		wifiClient->setTimeout(90000);
+		INFO("Setting Timeout to 90 s");
+	}
 
 	client_context_t *context = client_context_new(wifiClient);
 	context->server = server;

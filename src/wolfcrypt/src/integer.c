@@ -3535,7 +3535,7 @@ int s_mp_exptmod (mp_int * G, mp_int * X, mp_int * P, mp_int * Y, int redmode)
      * call `yield()` to run WiFi task,
      * to prevent WiFi disconnection while heavy crypto computing.
      */
-	yield();
+    optimistic_yield(1000);
     /* grab next digit as required */
     if (--bitcnt == 0) {
       /* if digidx == -1 we are out of digits */
