@@ -186,7 +186,7 @@ static const char *method_strings[] =
  *                    | "/" | "[" | "]" | "?" | "="
  *                    | "{" | "}" | SP | HT
  */
-static const char tokens[256] = {
+static const PROGMEM char tokens[256] = {
 /*   0 nul    1 soh    2 stx    3 etx    4 eot    5 enq    6 ack    7 bel  */
         0,       0,       0,       0,       0,       0,       0,       0,
 /*   8 bs     9 ht    10 nl    11 vt    12 np    13 cr    14 so    15 si   */
@@ -221,7 +221,7 @@ static const char tokens[256] = {
        'x',     'y',     'z',      0,      '|',      0,      '~',       0 };
 
 
-static const int8_t unhex[256] =
+static const PROGMEM char unhex[256] =
   {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
   ,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
   ,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
@@ -421,10 +421,10 @@ enum http_host_state
   (c) == ';' || (c) == ':' || (c) == '&' || (c) == '=' || (c) == '+' || \
   (c) == '$' || (c) == ',')
 
-#define STRICT_TOKEN(c)     (tokens[(unsigned char)c])
+#define STRICT_TOKEN(c)     (pgm_read_byte(tokens+c))
 
 #if HTTP_PARSER_STRICT
-#define TOKEN(c)            (tokens[(unsigned char)c])
+#define TOKEN(c)            (pgm_read_byte(tokens + c))
 #define IS_URL_CHAR(c)      (BIT_AT(normal_url_char, (unsigned char)c))
 #define IS_HOST_CHAR(c)     (IS_ALPHANUM(c) || (c) == '.' || (c) == '-')
 #else
@@ -1937,7 +1937,7 @@ reexecute:
         assert(parser->nread == 1);
         assert(parser->flags & F_CHUNKED);
 
-        unhex_val = unhex[(unsigned char)ch];
+        unhex_val = pgm_read_byte(unhex + ch);
         if (UNLIKELY(unhex_val == -1)) {
           SET_ERRNO(HPE_INVALID_CHUNK_SIZE);
           goto error;
@@ -1959,7 +1959,7 @@ reexecute:
           break;
         }
 
-        unhex_val = unhex[(unsigned char)ch];
+        unhex_val = pgm_read_byte(unhex + ch);
 
         if (unhex_val == -1) {
           if (ch == ';' || ch == ' ') {
