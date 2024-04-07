@@ -22,7 +22,14 @@ typedef unsigned char byte;
 #define HOMEKIT_LOG_LEVEL HOMEKIT_LOG_INFO
 #endif
 
+#ifdef LOG_MSG_BUFFER
+// Added for RATGDO project that has custom logger function.
+// Add -D LOG_MSG_BUFFER to compiler / platformio.ini
+void logToBuffer_P(const char *fmt, ...);
+#define HOMEKIT_PRINTF(message, ...) logToBuffer_P(PSTR(message), ##__VA_ARGS__)
+#else
 #define HOMEKIT_PRINTF XPGM_PRINTF
+#endif
 
 #if HOMEKIT_LOG_LEVEL >= HOMEKIT_LOG_DEBUG
 
