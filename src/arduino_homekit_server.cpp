@@ -14,7 +14,7 @@
 #include <wolfssl/wolfcrypt/hash.h> //wc_sha512
 
 #include "constants.h"
-#include "base64_util.h"
+#include "base64_utilities.h"
 #include "pairing.h"
 #include "storage.h"
 #include "query_params.h"
