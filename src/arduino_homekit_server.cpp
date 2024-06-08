@@ -3559,6 +3559,16 @@ void arduino_homekit_setup(homekit_server_config_t *config) {
 	});
 }
 
+void arduino_homekit_close() {
+	if (homekit_mdns_started) {
+		homekit_mdns_started = false;
+		MDNS.close();
+	}
+	if (running_server) {
+		server_free(running_server);
+	}
+}
+
 void arduino_homekit_loop() {
 	if (homekit_mdns_started) {
 		MDNS.update();
