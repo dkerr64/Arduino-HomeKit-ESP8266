@@ -536,7 +536,8 @@ void write(client_context_t *context, byte *data, int data_size) {
 	CLIENT_DEBUG(context, "Sending data of size %d", data_size);
 	if (write_size != data_size) {
 		context->error_write = true;
-		context->socket->keepAlive(1, 1, 1);	// fast disconnected internally in 1 second.
+		//context->socket->keepAlive(1, 1, 1);	// fast disconnected internally in 1 second.
+		context->socket->stop();
 		CLIENT_ERROR(context, "socket.write, data_size=%d, write_size=%d", data_size, write_size);
 	}
 }
