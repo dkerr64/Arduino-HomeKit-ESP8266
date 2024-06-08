@@ -145,6 +145,13 @@ After memory optimization in v1.1.0:
 
 ## Change Log
 
+#### v1.5.0
+
+* Added function to close HomeKit server
+* Moved some memory usage from stack to heap, and from heap to PROGMEM to reduce overall memory usage.
+* Improved performance of HomeKit pairing, help avoid WiFi disconnection.
+* Handle edge-case where client IP address may not be set during WiFi setup.
+
 #### v1.4.0
 
 * Add `yield()` while crypto computing, to prevent WiFi disconnection. The idea is from [BbIKTOP-issues80](https://github.com/Yurik72/ESPHap/issues/80#issuecomment-803685175)
@@ -169,6 +176,7 @@ After memory optimization in v1.1.0:
 * Rename the `HTTP_METHOD`(s) in `http_parser.h` to avoid multi-definition errors when using `ESP8266WebServer` together.
 
 ## Thanks
+* [homekit-ratgdo](https://github.com/ratgdo/homekit-ratgdo)
 * [esp-homekit](https://github.com/maximkulkin/esp-homekit)
 * [esp-homekit-demo](https://github.com/maximkulkin/esp-homekit-demo)
 * [esp_hw_wdt](https://github.com/ComSuite/esp_hw_wdt)
