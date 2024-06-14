@@ -14,7 +14,7 @@
 #include <wolfssl/wolfcrypt/hash.h> //wc_sha512
 
 #include "constants.h"
-#include "base64_util.h"
+#include "base64_utilities.h"
 #include "pairing.h"
 #include "storage.h"
 #include "query_params.h"
@@ -536,7 +536,8 @@ void write(client_context_t *context, byte *data, int data_size) {
 	CLIENT_DEBUG(context, "Sending data of size %d", data_size);
 	if (write_size != data_size) {
 		context->error_write = true;
-		context->socket->keepAlive(1, 1, 1);	// fast disconnected internally in 1 second.
+		//context->socket->keepAlive(1, 1, 1);	// fast disconnected internally in 1 second.
+		context->socket->stop();
 		CLIENT_ERROR(context, "socket.write, data_size=%d, write_size=%d", data_size, write_size);
 	}
 }
@@ -561,8 +562,10 @@ int client_send_encrypted_(client_context_t *context,
 	byte nonce[12];
 	memset(nonce, 0, sizeof(nonce));
 
-	byte encrypted[1024 + 18];
-	uint payload_offset = 0;
+#define ENCRYPTED_BUFFER_SIZE 1024
+#define AAD_SIZE 2
+	byte *encrypted = (byte*)malloc(ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
+	size_t payload_offset = 0;
 
 	while (payload_offset < size) {
 		size_t chunk_size = size - payload_offset;
@@ -580,19 +583,21 @@ int client_send_encrypted_(client_context_t *context,
 			x /= 256;
 		}
 
-		size_t available = sizeof(encrypted) - 2;
-		int r = crypto_chacha20poly1305_encrypt(context->read_key, nonce, aead, 2,
-				payload + payload_offset, chunk_size, encrypted + 2, &available);
+		size_t available = ENCRYPTED_BUFFER_SIZE + 16;
+		int r = crypto_chacha20poly1305_encrypt(context->read_key, nonce, aead, AAD_SIZE,
+				payload + payload_offset, chunk_size, encrypted + AAD_SIZE, &available);
 		if (r) {
 			ERROR("Failed to chacha encrypt payload (code %d)", r);
+			free(encrypted);
 			return -1;
 		}
 
 		payload_offset += chunk_size;
 
-		write(context, encrypted, available + 2);
+		write(context, encrypted, available + AAD_SIZE);
 	}
 
+	free(encrypted);
 	return 0;
 }
 
@@ -616,8 +621,8 @@ int client_decrypt_(client_context_t *context,
 	byte nonce[12];
 	memset(nonce, 0, sizeof(nonce));
 
-	int payload_offset = 0;
-	int decrypted_offset = 0;
+	size_t payload_offset = 0;
+	size_t decrypted_offset = 0;
 
 	while (payload_offset < payload_size) {
 		size_t chunk_size = payload[payload_offset] + payload[payload_offset + 1] * 256;
@@ -2987,6 +2992,13 @@ client_context_t* homekit_server_accept_client(homekit_server_t *server) {
 			delete wifiClient;
 			return NULL;
 		}
+		if (!wifiClient->localIP().isSet() ||
+			!wifiClient->remoteIP().isSet()) {
+			INFO("wifiClient creation error, IP address is not set");
+			wifiClient->stop();
+			delete wifiClient;
+			return NULL;
+		}
 	} else {
 		return NULL;
 	}
@@ -2996,11 +3008,19 @@ client_context_t* homekit_server_accept_client(homekit_server_t *server) {
 			wifiClient->localIP().toString().c_str(), wifiClient->localPort(),
 			wifiClient->remoteIP().toString().c_str(), wifiClient->remotePort());
 
-	wifiClient->keepAlive(HOMEKIT_SOCKET_KEEPALIVE_IDLE_SEC,
-	HOMEKIT_SOCKET_KEEPALIVE_INTERVAL_SEC, HOMEKIT_SOCKET_KEEPALIVE_IDLE_COUNT);
 	wifiClient->setNoDelay(true);
-	wifiClient->setSync(false);
-	wifiClient->setTimeout(HOMEKIT_SOCKET_TIMEOUT);
+	wifiClient->setSync(true);
+	if (server->paired) {
+		wifiClient->keepAlive(HOMEKIT_SOCKET_KEEPALIVE_IDLE_SEC,
+			HOMEKIT_SOCKET_KEEPALIVE_INTERVAL_SEC, HOMEKIT_SOCKET_KEEPALIVE_IDLE_COUNT);
+		wifiClient->setTimeout(HOMEKIT_SOCKET_TIMEOUT);
+		INFO("Setting Timeout to 500ms");
+	} else {
+		// During the pairing process, relax the session timeout and be more agressive about keepalives
+		wifiClient->keepAlive(5, 5, 20);
+		wifiClient->setTimeout(90000);
+		INFO("Setting Timeout to 90 s");
+	}
 
 	client_context_t *context = client_context_new(wifiClient);
 	context->server = server;
@@ -3537,6 +3557,16 @@ void arduino_homekit_setup(homekit_server_config_t *config) {
 			ERROR("running_server is NULL!");
 		}
 	});
+}
+
+void arduino_homekit_close() {
+	if (homekit_mdns_started) {
+		homekit_mdns_started = false;
+		MDNS.close();
+	}
+	if (running_server) {
+		server_free(running_server);
+	}
 }
 
 void arduino_homekit_loop() {

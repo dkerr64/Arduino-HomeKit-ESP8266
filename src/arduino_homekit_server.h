@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 #include "constants.h"
-#include "base64_util.h"
+#include "base64_utilities.h"
 #include "crypto.h"
 #include "pairing.h"
 #include "storage.h"
@@ -226,6 +226,7 @@ typedef struct _client_event {
 
 
 void arduino_homekit_setup(homekit_server_config_t *config);
+void arduino_homekit_close();
 void arduino_homekit_loop();
 
 homekit_server_t * arduino_homekit_get_running_server();
