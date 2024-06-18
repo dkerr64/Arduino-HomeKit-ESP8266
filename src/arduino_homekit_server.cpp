@@ -663,8 +663,12 @@ void client_notify_characteristic(homekit_characteristic_t *ch, homekit_value_t 
 		CLIENT_DEBUG(client, "This value is set by this client, no need to send notification");
 		return;
 	}
-	CLIENT_INFO(client, "Got characteristic %d.%d change event",
-			ch->service->accessory->id, ch->id);
+	char * valstr;
+	homekit_value_print(&valstr, &value);
+	CLIENT_INFO(client, "Got characteristic %d.%d change event %s",
+			ch->service->accessory->id, ch->id, valstr);
+	free(valstr);
+
 	//DEBUG("Got characteristic %d.%d change event", ch->service->accessory->id, ch->id);
 
 	if (!client->event_queue) {
@@ -3049,6 +3053,14 @@ void homekit_server_process_notifications(homekit_server_t *server) {
 		}
 		characteristic_event_t *event = NULL;
 		if (context->event_queue && q_pop(context->event_queue, &event)) {
+			#if HOMEKIT_LOG_LEVEL >= HOMEKIT_LOG_DEBUG
+			char * valstr;
+			homekit_value_print(&valstr, &event->value);
+			CLIENT_DEBUG(context, "Sending characteristic %d.%d change notification %s",
+					event->characteristic->service->accessory->id, event->characteristic->id, valstr);
+			free(valstr);
+			#endif
+
 			// Get and coalesce all client events
 			client_event_t *events_head = (client_event_t*) malloc(sizeof(client_event_t));
 			events_head->characteristic = event->characteristic;
@@ -3061,6 +3073,12 @@ void homekit_server_process_notifications(homekit_server_t *server) {
 			client_event_t *events_tail = events_head;
 
 			while (q_pop(context->event_queue, &event)) {
+				#if HOMEKIT_LOG_LEVEL >= HOMEKIT_LOG_DEBUG
+				homekit_value_print(&valstr, &event->value);
+				CLIENT_DEBUG(context, "Sending characteristic %d.%d change notification %s",
+						event->characteristic->service->accessory->id, event->characteristic->id, valstr);
+				free(valstr);
+				#endif
 				//q_pop第二个参数必须传指针的地址
 				//event = context->event_queue->shift();
 				client_event_t *e = events_head;

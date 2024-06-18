@@ -55,6 +55,46 @@ bool homekit_value_equal(homekit_value_t *a, homekit_value_t *b) {
     return false;
 }
 
+//Call this function with a string pointer and be sure to free when done
+void homekit_value_print(char** str, homekit_value_t *value) {
+    if (!value->is_null) {
+        switch (value->format) {
+            case homekit_format_bool:
+                asprintf(str, "%s", value->bool_value ? "True" : "False");
+                break;
+            case homekit_format_uint8:
+                asprintf(str, "%u", value->uint8_value);
+                break;
+            case homekit_format_uint16:
+                asprintf(str, "%u", value->uint16_value);
+                break;
+            case homekit_format_uint32:
+                asprintf(str, "%u", value->uint32_value);
+                break;
+            case homekit_format_uint64:
+                asprintf(str, "%llu", value->uint64_value);
+                break;
+            case homekit_format_int:
+                asprintf(str, "%d", value->int_value);
+                break;
+            case homekit_format_float:
+                asprintf(str, "%f", value->float_value);
+                break;
+            case homekit_format_string:
+                asprintf(str, "%s", value->string_value);
+                break;
+            case homekit_format_tlv:
+                //TODO
+            case homekit_format_data:
+                //TODO
+            default:
+                asprintf(str, " ");
+                // unknown format
+                break;
+        }
+    }
+}
+
 void homekit_value_copy(homekit_value_t *dst, homekit_value_t *src) {
     memset(dst, 0, sizeof(*dst));
 
