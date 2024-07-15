@@ -1,5 +1,7 @@
 #include <string.h>
 #include <ctype.h>
+#include "lwipopts.h" // for struct ip_info warnting message...
+//.platformio/packages/framework-arduinoespressif8266/tools/sdk/lwip2/include/glue.h:98:37: warning: 'struct ip_info' declared inside parameter list will not be visible outside of this definition or declaration
 #include "constants.h"
 #include "pairing.h"
 #include "port.h"
