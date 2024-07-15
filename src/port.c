@@ -132,10 +132,9 @@ void homekit_mdns_add_txt(const char *key, const char *format, ...) {
 }
 
 void homekit_mdns_configure_finalize() {
-    /*
-    printf("mDNS announcement: Name=%s %s Port=%d TTL=%d\n",
-           name->value.string_value, txt_rec, PORT, 0);
-    */
-//}*/
+    //printf("mDNS announcement: Name=%s %s Port=%d TTL=%d\n",
+    //     name->value.string_value, txt_rec, PORT, 0);
+}
+*/
 
 #endif
