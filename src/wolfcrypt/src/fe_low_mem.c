@@ -41,6 +41,10 @@
     #include <wolfcrypt/src/misc.c>
 #endif
 
+// Declare functions to avoid compiler warnings
+void fprime_select(byte *dst, const byte *zero, const byte *one, byte condition);
+void fe_select(byte *dst, const byte *zero, const byte *one,byte condition);
+
 void fprime_copy(byte *x, const byte *a)
 {
     int i;
