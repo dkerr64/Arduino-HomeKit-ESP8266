@@ -306,13 +306,13 @@ void ed25519_add(ge_p3 *r,
     byte h[F25519_SIZE];
 
     /* A = (Y1-X1)(Y2-X2) */
-    lm_sub(c, p1->Y, p1->X);
-    lm_sub(d, p2->Y, p2->X);
+    lm_sub(c, (const byte *)p1->Y, (const byte *)p1->X);
+    lm_sub(d, (const byte *)p2->Y, (const byte *)p2->X);
     fe_mul__distinct(a, c, d);
 
     /* B = (Y1+X1)(Y2+X2) */
-    lm_add(c, p1->Y, p1->X);
-    lm_add(d, p2->Y, p2->X);
+    lm_add(c, (const byte *)p1->Y, (const byte *)p1->X);
+    lm_add(d, (const byte *)p2->Y, (const byte *)p2->X);
     fe_mul__distinct(b, c, d);
 
     /* C = T1 k T2 */
@@ -388,7 +388,7 @@ void ed25519_double(ge_p3 *r, const ge_p3 *p)
 
     /* D = a A (alter sign) */
     /* E = (X1+Y1)^2-A-B */
-    lm_add(f, p->X, p->Y);
+    lm_add(f, (const byte *)p->X, (const byte *)p->Y);
     fe_mul__distinct(e, f, f);
     lm_sub(e, e, a);
     lm_sub(e, e, b);
@@ -560,9 +560,9 @@ int ge_double_scalarmult_vartime_lowmem(ge_p2* R, const unsigned char *h,
     /* SB + -H(R,A,M)A */
     ed25519_add(&A, &p, &A);
 
-    lm_copy(R->X, A.X);
-    lm_copy(R->Y, A.Y);
-    lm_copy(R->Z, A.Z);
+    lm_copy((byte *)R->X, (const byte *)A.X);
+    lm_copy((byte *)R->Y, (const byte *)A.Y);
+    lm_copy((byte *)R->Z, (const byte *)A.Z);
 
     return ret;
 }
