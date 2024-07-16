@@ -45,6 +45,7 @@ void ed25519_add(ge_p3 *r, const ge_p3 *a, const ge_p3 *b);
 void ed25519_double(ge_p3 *r, const ge_p3 *a);
 
 
+#if !defined(ESP_GE_DOUBLE_SCALARMULT_VARTIME_LOWMEM)
 static const byte ed25519_order[F25519_SIZE] = {
     0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58,
     0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14,
@@ -68,7 +69,6 @@ static const word32 mu[33] = {
     0xFF,0xFF,0xFF,0xFF,0x0F
 };
 
-#if !defined(ESP_GE_DOUBLE_SCALARMULT_VARTIME_LOWMEM)
 
 int ge_compress_key(byte* out, const byte* xIn, const byte* yIn,
                         word32 keySz)
@@ -90,7 +90,6 @@ int ge_compress_key(byte* out, const byte* xIn, const byte* yIn,
     (void)keySz;
     return 0;
 }
-#endif /* ESP_GE_DOUBLE_SCALARMULT_VARTIME_LOWMEM */
 
 
 static word32 lt(word32 a,word32 b) /* 16-bit inputs */
@@ -177,7 +176,6 @@ static void barrett_reduce(word32* r, word32 x[64])
   reduce_add_sub(r);
 }
 
-#if !defined(ESP_GE_DOUBLE_SCALARMULT_VARTIME_LOWMEM)
 
 void sc_reduce(unsigned char x[64])
 {
@@ -256,12 +254,14 @@ const ge_p3 ed25519_neutral = {
 };
 
 
+#if !defined(ESP_GE_DOUBLE_SCALARMULT_VARTIME_LOWMEM)
 static const byte ed25519_d[F25519_SIZE] = {
     0xa3, 0x78, 0x59, 0x13, 0xca, 0x4d, 0xeb, 0x75,
     0xab, 0xd8, 0x41, 0x41, 0x4d, 0x0a, 0x70, 0x00,
     0x98, 0xe8, 0x79, 0x77, 0x79, 0x40, 0xc7, 0x8c,
     0x73, 0xfe, 0x6f, 0x2b, 0xee, 0x6c, 0x03, 0x52
 };
+#endif
 
 
 /* k = 2d */
