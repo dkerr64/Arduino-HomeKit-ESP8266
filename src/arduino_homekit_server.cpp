@@ -572,7 +572,7 @@ int client_send_encrypted_(client_context_t *context,
 		if (chunk_size > 1024)
 			chunk_size = 1024;
 
-		byte aead[2] = { chunk_size % 256, chunk_size / 256 };
+		byte aead[2] = { (byte)(chunk_size % 256), (byte)(chunk_size / 256) };
 
 		memcpy(encrypted, aead, 2);
 
@@ -663,8 +663,12 @@ void client_notify_characteristic(homekit_characteristic_t *ch, homekit_value_t 
 		CLIENT_DEBUG(client, "This value is set by this client, no need to send notification");
 		return;
 	}
-	CLIENT_INFO(client, "Got characteristic %d.%d change event",
-			ch->service->accessory->id, ch->id);
+	char * valstr;
+	homekit_value_print(&valstr, &value);
+	CLIENT_INFO(client, "Got characteristic %d.%d change event %s",
+			ch->service->accessory->id, ch->id, valstr);
+	free(valstr);
+
 	//DEBUG("Got characteristic %d.%d change event", ch->service->accessory->id, ch->id);
 
 	if (!client->event_queue) {
@@ -801,9 +805,9 @@ void send_tlv_response(client_context_t *context, tlv_values_t *values) {
 
 	XPGM_BUFFCPY_STRING(char, http_headers, http_headers_pgm);
 
-	int response_size = strlen(http_headers) + payload_size + 32;
+	size_t response_size = strlen(http_headers) + payload_size + 32;
 	char *response = (char*) malloc(response_size);
-	int response_len = snprintf(response, response_size, http_headers, payload_size);
+	size_t response_len = snprintf(response, response_size, http_headers, payload_size);
 
 	if (response_size - response_len < payload_size + 1) {
 		CLIENT_ERROR(context, "Incorrect response buffer size %d: headers took %d, payload size %d",
@@ -873,13 +877,13 @@ void send_json_response(client_context_t *context, int status_code, byte *payloa
 		break;
 	}
 
-	int response_size = strlen(http_headers) + payload_size + strlen(status_text) + 32;
+	size_t response_size = strlen(http_headers) + payload_size + strlen(status_text) + 32;
 	char *response = (char*) malloc(response_size);
 	if (!response) {
 		CLIENT_ERROR(context, "Failed to allocate response buffer of size %d", response_size);
 		return;
 	}
-	int response_len = snprintf(response, response_size, http_headers, status_code, status_text,
+	size_t response_len = snprintf(response, response_size, http_headers, status_code, status_text,
 			payload_size);
 
 	if (response_size - response_len < payload_size + 1) {
@@ -2214,7 +2218,7 @@ HAPStatus process_characteristics_update(const cJSON *j_ch, client_context_t *co
 				return HAPStatus_InvalidValue;
 			}
 
-			int max_len = (ch->max_len) ? *ch->max_len : 64;
+			size_t max_len = (ch->max_len) ? *ch->max_len : 64;
 
 			char *value = j_value->valuestring;
 			if (strlen(value) > max_len) {
@@ -2239,7 +2243,7 @@ HAPStatus process_characteristics_update(const cJSON *j_ch, client_context_t *co
 				return HAPStatus_InvalidValue;
 			}
 
-			int max_len = (ch->max_len) ? *ch->max_len : 256;
+			size_t max_len = (ch->max_len) ? *ch->max_len : 256;
 
 			char *value = j_value->valuestring;
 			size_t value_len = strlen(value);
@@ -2291,7 +2295,7 @@ HAPStatus process_characteristics_update(const cJSON *j_ch, client_context_t *co
 
 			// Default max data len = 2,097,152 but that does not make sense
 			// for this accessory
-			int max_len = (ch->max_data_len) ? *ch->max_data_len : 4096;
+			size_t max_len = (ch->max_data_len) ? *ch->max_data_len : 4096;
 
 			char *value = j_value->valuestring;
 			size_t value_len = strlen(value);
@@ -3049,6 +3053,14 @@ void homekit_server_process_notifications(homekit_server_t *server) {
 		}
 		characteristic_event_t *event = NULL;
 		if (context->event_queue && q_pop(context->event_queue, &event)) {
+			#if HOMEKIT_LOG_LEVEL >= HOMEKIT_LOG_DEBUG
+			char * valstr;
+			homekit_value_print(&valstr, &event->value);
+			CLIENT_DEBUG(context, "Sending characteristic %d.%d change notification %s",
+					event->characteristic->service->accessory->id, event->characteristic->id, valstr);
+			free(valstr);
+			#endif
+
 			// Get and coalesce all client events
 			client_event_t *events_head = (client_event_t*) malloc(sizeof(client_event_t));
 			events_head->characteristic = event->characteristic;
@@ -3061,6 +3073,12 @@ void homekit_server_process_notifications(homekit_server_t *server) {
 			client_event_t *events_tail = events_head;
 
 			while (q_pop(context->event_queue, &event)) {
+				#if HOMEKIT_LOG_LEVEL >= HOMEKIT_LOG_DEBUG
+				homekit_value_print(&valstr, &event->value);
+				CLIENT_DEBUG(context, "Sending characteristic %d.%d change notification %s",
+						event->characteristic->service->accessory->id, event->characteristic->id, valstr);
+				free(valstr);
+				#endif
 				//q_pop第二个参数必须传指针的地址
 				//event = context->event_queue->shift();
 				client_event_t *e = events_head;
