@@ -65,6 +65,7 @@
 client_context_t *current_client_context = NULL;
 homekit_server_t *running_server = nullptr;
 WiFiEventHandler arduino_homekit_gotiphandler;
+byte *encryptedBuffer;
 
 #define HOMEKIT_NOTIFY_EVENT(server, event) \
   if ((server)->config->on_event) \
@@ -564,7 +565,8 @@ int client_send_encrypted_(client_context_t *context,
 
 #define ENCRYPTED_BUFFER_SIZE 1024
 #define AAD_SIZE 2
-	byte *encrypted = (byte*)malloc(ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
+	// byte *encrypted = (byte*)malloc(ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
+	byte *encrypted = encryptedBuffer;
 	size_t payload_offset = 0;
 
 	while (payload_offset < size) {
@@ -588,7 +590,7 @@ int client_send_encrypted_(client_context_t *context,
 				payload + payload_offset, chunk_size, encrypted + AAD_SIZE, &available);
 		if (r) {
 			ERROR("Failed to chacha encrypt payload (code %d)", r);
-			free(encrypted);
+			//free(encrypted);
 			return -1;
 		}
 
@@ -597,7 +599,7 @@ int client_send_encrypted_(client_context_t *context,
 		write(context, encrypted, available + AAD_SIZE);
 	}
 
-	free(encrypted);
+	//free(encrypted);
 	return 0;
 }
 
@@ -3561,6 +3563,7 @@ void arduino_homekit_setup(homekit_server_config_t *config) {
 		INFO("Update the CPU to run at 160MHz");
 	}
 
+	encryptedBuffer = (byte *)malloc(ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
 	homekit_server_init(config);
 	// The MDNS needs to be restarted when WiFi is connected to confirm the
 	// MDNS runs at the IPAddress of STA
@@ -3585,6 +3588,7 @@ void arduino_homekit_close() {
 	if (running_server) {
 		server_free(running_server);
 	}
+	free(encryptedBuffer);
 }
 
 void arduino_homekit_loop() {
