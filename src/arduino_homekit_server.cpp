@@ -28,6 +28,12 @@
 #include "crypto.h"
 #include "watchdog.h"
 #include "arduino_homekit_server.h"
+#if defined(MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
+// We can move ~1.5KB of memory usage from RAM to IRAM during initialization
+// On very small systems this might be just enough to make everything work!
+#include <umm_malloc/umm_malloc.h>
+#include <umm_malloc/umm_heap_select.h>
+#endif
 
 #define HOMEKIT_SERVER_PORT      5556
 #define HOMEKIT_MAX_CLIENTS      8
@@ -565,6 +571,8 @@ int client_send_encrypted_(client_context_t *context,
 
 #define ENCRYPTED_BUFFER_SIZE 1024
 #define AAD_SIZE 2
+	// Moved this allocation to arduino_homekit_setup() so it is allocated only once, this
+	// works because we are single-threaded so do not need to allow for parallel execution.
 	// byte *encrypted = (byte*)malloc(ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
 	byte *encrypted = encryptedBuffer;
 	size_t payload_offset = 0;
@@ -3162,7 +3170,10 @@ bool homekit_mdns_started = false;
 
 void homekit_mdns_init(homekit_server_t *server) {
 	INFO("Configuring MDNS");
-
+#if defined (MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
+	HeapSelectIram ephemeral;
+	INFO("Free IRAM Heap (homekit_mdns_init - entry): %d", ESP.getFreeHeap());
+#endif
 	if (!WiFi.isConnected()) {
 		return;
 	}
@@ -3201,6 +3212,9 @@ void homekit_mdns_init(homekit_server_t *server) {
 		MDNS.begin(name->value.string_value, staIP);
 		INFO("MDNS restart: %s, IP: %s", name->value.string_value, staIP.toString().c_str());
 		MDNS.announce();
+#if defined (MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
+		INFO("Free IRAM Heap (homekit_mdns_init - exit): %d", ESP.getFreeHeap());
+#endif
 		return;
 	}
 
@@ -3264,6 +3278,9 @@ void homekit_mdns_init(homekit_server_t *server) {
 	MDNS.announce();
 	MDNS.update();
 	homekit_mdns_started = true;
+#if defined (MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
+	INFO("Free IRAM Heap (homekit_mdns_init - exit): %d", ESP.getFreeHeap());
+#endif
 }
 
 // Used to update the config_number ("c#" value of Bonjour)
@@ -3562,8 +3579,15 @@ void arduino_homekit_setup(homekit_server_config_t *config) {
 		system_update_cpu_freq(SYS_CPU_160MHZ);
 		INFO("Update the CPU to run at 160MHz");
 	}
-
+#if defined (MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
+	{
+		HeapSelectIram ephemeral;
+		INFO("Free IRAM Heap (arduino_homekit_setup): %d, allocate: %d",  ESP.getFreeHeap(), ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
+		encryptedBuffer = (byte *)malloc(ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
+	}
+#else
 	encryptedBuffer = (byte *)malloc(ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
+#endif
 	homekit_server_init(config);
 	// The MDNS needs to be restarted when WiFi is connected to confirm the
 	// MDNS runs at the IPAddress of STA
