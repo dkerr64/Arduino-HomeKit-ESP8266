@@ -338,7 +338,9 @@ homekit_characteristic_t* homekit_characteristic_clone(homekit_characteristic_t*
 
 homekit_service_t* homekit_service_clone(homekit_service_t* service) {
     size_t type_len = strlen(service->type) + 1;
-    size_t size = align_size(sizeof(homekit_service_t) + type_len);
+    size_t description_len = service->description ? strlen(service->description) + 1 : 0;
+
+    size_t size = align_size(sizeof(homekit_service_t) + type_len + description_len);
 
     if (service->linked) {
         int i = 0;
@@ -362,8 +364,13 @@ homekit_service_t* homekit_service_clone(homekit_service_t* service) {
     clone->id = service->id;
     clone->type = strncpy((char*) p, service->type, type_len);
     p[type_len - 1] = 0;
-    p += align_size(type_len);
 
+    clone->description = (char*) p;
+    strncpy((char*) p, service->description, description_len);
+    p[description_len - 1] = 0;
+    p += description_len;
+    p = align_pointer(p);
+    
     clone->hidden = service->hidden;
     clone->primary = service->primary;
 
