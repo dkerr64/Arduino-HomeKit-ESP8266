@@ -3194,7 +3194,7 @@ void homekit_mdns_init(homekit_server_t *server) {
 	homekit_characteristic_t *name = homekit_service_characteristic_by_type(accessory_info,
     HOMEKIT_CHARACTERISTIC_NAME);
 
-	if (!name) {
+	if (!name || strlen(name->value.string_value) == 0) {
 		ERROR("Invalid accessory declaration: " "no Name characteristic in AccessoryInfo service");
 		return;
 	}
