@@ -223,6 +223,7 @@ struct _homekit_service {
 
     unsigned int id;
     const char *type;
+    const char *description;
     bool hidden;
     bool primary;
 
@@ -250,7 +251,7 @@ struct _homekit_accessory {
 // Macro to define service inside accessory definition.
 // Requires HOMEKIT_SERVICE_<name> define to expand to service type UUID string
 #define HOMEKIT_SERVICE(_type, ...) \
-    &(homekit_service_t) { .type=HOMEKIT_SERVICE_ ## _type, ##__VA_ARGS__ }
+    &(homekit_service_t) { .type=HOMEKIT_SERVICE_ ## _type, .description=#_type, ##__VA_ARGS__ }
 
 // Macro to define standalone service (outside of accessory definition)
 // Requires HOMEKIT_SERVICE_<name> define to expand to service type UUID string

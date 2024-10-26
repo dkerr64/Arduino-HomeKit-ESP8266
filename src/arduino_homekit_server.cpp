@@ -675,8 +675,8 @@ void client_notify_characteristic(homekit_characteristic_t *ch, homekit_value_t 
 	}
 	char * valstr;
 	homekit_value_print(&valstr, &value);
-	CLIENT_INFO(client, "Got characteristic %d.%d change event %s",
-			ch->service->accessory->id, ch->id, valstr);
+	CLIENT_INFO(client, "Got characteristic %d.%d %s %s change event %s",
+			ch->service->accessory->id, ch->id, ch->service->description, ch->description, valstr);
 	free(valstr);
 
 	//DEBUG("Got characteristic %d.%d change event", ch->service->accessory->id, ch->id);
