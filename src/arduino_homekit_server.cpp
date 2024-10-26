@@ -28,7 +28,9 @@
 #include "crypto.h"
 #include "watchdog.h"
 #include "arduino_homekit_server.h"
-#if defined(MMU_IRAM_HEAP)
+#if defined(MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
+// We can move ~1.5KB of memory usage from RAM to IRAM during initialization
+// On very small systems this might be just enough to make everything work!
 #include <umm_malloc/umm_malloc.h>
 #include <umm_malloc/umm_heap_select.h>
 #endif
@@ -3168,7 +3170,7 @@ bool homekit_mdns_started = false;
 
 void homekit_mdns_init(homekit_server_t *server) {
 	INFO("Configuring MDNS");
-#ifdef MMU_IRAM_HEAP
+#if defined (MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
 	HeapSelectIram ephemeral;
 	INFO("Free IRAM Heap (homekit_mdns_init - entry): %d", ESP.getFreeHeap());
 #endif
@@ -3210,7 +3212,7 @@ void homekit_mdns_init(homekit_server_t *server) {
 		MDNS.begin(name->value.string_value, staIP);
 		INFO("MDNS restart: %s, IP: %s", name->value.string_value, staIP.toString().c_str());
 		MDNS.announce();
-#ifdef MMU_IRAM_HEAP
+#if defined (MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
 		INFO("Free IRAM Heap (homekit_mdns_init - exit): %d", ESP.getFreeHeap());
 #endif
 		return;
@@ -3276,7 +3278,7 @@ void homekit_mdns_init(homekit_server_t *server) {
 	MDNS.announce();
 	MDNS.update();
 	homekit_mdns_started = true;
-#ifdef MMU_IRAM_HEAP
+#if defined (MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
 	INFO("Free IRAM Heap (homekit_mdns_init - exit): %d", ESP.getFreeHeap());
 #endif
 }
@@ -3577,7 +3579,7 @@ void arduino_homekit_setup(homekit_server_config_t *config) {
 		system_update_cpu_freq(SYS_CPU_160MHZ);
 		INFO("Update the CPU to run at 160MHz");
 	}
-#ifdef MMU_IRAM_HEAP
+#if defined (MMU_IRAM_HEAP) && defined(HOMEKIT_USE_IRAM)
 	{
 		HeapSelectIram ephemeral;
 		INFO("Free IRAM Heap (arduino_homekit_setup): %d, allocate: %d",  ESP.getFreeHeap(), ENCRYPTED_BUFFER_SIZE + 16 + AAD_SIZE);
