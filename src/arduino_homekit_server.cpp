@@ -1894,7 +1894,7 @@ void write_characteristic_error(json_stream *json, uint32_t aid, uint32_t iid, i
 }
 
 void homekit_server_on_get_characteristics(client_context_t *context) {
-	CLIENT_INFO(context, "Get Characteristics");DEBUG_HEAP();
+	CLIENT_DEBUG(context, "Get Characteristics");DEBUG_HEAP();
 
 	query_param_t *qp = context->endpoint_params;
 	while (qp) {
@@ -1986,7 +1986,11 @@ void homekit_server_on_get_characteristics(client_context_t *context) {
 			write_characteristic_error(json, aid, iid, HAPStatus_WriteOnly);
 			continue;
 		}
-
+		char * valstr;
+		homekit_value_print(&valstr, &ch->value);
+		CLIENT_INFO(context, "Requested characteristic info for %d.%d %s %s %s", aid, iid, 
+			ch->service->description, ch->description, valstr);
+		free(valstr);
 		json_object_start(json);
 		write_characteristic_json(json, context, ch, format, NULL);
 		if (!success) {
@@ -2334,6 +2338,11 @@ HAPStatus process_characteristics_update(const cJSON *j_ch, client_context_t *co
 			break;
 		}
 		}
+		char * valstr;
+		homekit_value_print(&valstr, &ch->value);
+		CLIENT_INFO(context, "Updating characteristic %d.%d %s %s %s", 
+		   aid, iid, ch->service->description, ch->description, valstr);
+		free(valstr);
 
 		if (!h_value.is_null) {
 			context->current_characteristic = ch;
