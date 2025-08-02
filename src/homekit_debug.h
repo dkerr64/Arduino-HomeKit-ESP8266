@@ -19,7 +19,7 @@ extern "C"
 #define HOMEKIT_LOG_INFO 2
 #define HOMEKIT_LOG_DEBUG 3
 
-#ifdef LOG_MSG_BUFFER
+#ifdef HOMEKIT_USE_RATGDO_LOG
 // Added for RATGDO project that has custom logger function.
 // Add -D LOG_MSG_BUFFER to compiler / platformio.ini
 #ifndef HOMEKIT_LOG_LEVEL
@@ -56,8 +56,11 @@ extern "C"
 #define DEBUG(message, ...) ESP_LOGD("HomeKit", "(%s) " message, __func__, ##__VA_ARGS__)
     static uint32_t start_time = 0;
 #define DEBUG_TIME_BEGIN() start_time = millis();
-#define DEBUG_TIME_END(func_name) DEBUG("%s took %6lu ms\n", func_name, (millis() - start_time));
+#define DEBUG_TIME_END(func_name) DEBUG("%s took %6lu ms", func_name, (millis() - start_time));
 #define DEBUG_HEAP() DEBUG("Free heap: %d", system_get_free_heap_size());
+#define VERBOSE_TIME_BEGIN() start_time = millis();
+#define VERBOSE_TIME_END(func_name) VERBOSE("%s took %6lu ms", func_name, (millis() - start_time));
+#define VERBOSE_HEAP() VERBOSE("Free heap: %d", system_get_free_heap_size());
 #define ERROR(message, ...) ESP_LOGE("HomeKit", message, ##__VA_ARGS__)
 #define INFO(message, ...) ESP_LOGI("HomeKit", message, ##__VA_ARGS__)
 #define INFO_HEAP() INFO("Free heap: %d", system_get_free_heap_size());
@@ -80,6 +83,10 @@ static uint32_t start_time = 0;
 
 #else
 
+#define VERBOSE(message, ...)
+#define VERBOSE_TIME_BEGIN()
+#define VERBOSE_TIME_END(func_name)
+#define VERBOSE_HEAP()
 #define DEBUG(message, ...)
 #define DEBUG_TIME_BEGIN()
 #define DEBUG_TIME_END(func_name)
