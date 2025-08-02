@@ -64,6 +64,7 @@
 #define TLV_DEBUG(values)
 #endif
 
+#define CLIENT_VERBOSE(client, message, ...) VERBOSE("[Client %d] " message, client->socket, ##__VA_ARGS__)
 #define CLIENT_DEBUG(client, message, ...) DEBUG("[Client %d] " message, client->socket, ##__VA_ARGS__)
 #define CLIENT_INFO(client, message, ...) INFO("[Client %d] " message, client->socket, ##__VA_ARGS__)
 #define CLIENT_ERROR(client, message, ...) ERROR("[Client %d] " message, client->socket, ##__VA_ARGS__)
@@ -540,7 +541,7 @@ void write(client_context_t *context, byte *data, int data_size) {
 		return;
 	}
 	int write_size = context->socket->write(data, data_size);
-	CLIENT_DEBUG(context, "Sending data of size %d", data_size);
+	CLIENT_VERBOSE(context, "Sending data of size %d", data_size);
 	if (write_size != data_size) {
 		context->error_write = true;
 		//context->socket->keepAlive(1, 1, 1);	// fast disconnected internally in 1 second.
@@ -551,7 +552,7 @@ void write(client_context_t *context, byte *data, int data_size) {
 
 int client_send_encrypted_(client_context_t *context,
 		byte *payload, size_t size) {
-	CLIENT_DEBUG(context, "Send encrypted of size %d", size);
+	CLIENT_VERBOSE(context, "Send encrypted of size %d", size);
 	// max(size) = HOMEKIT_JSONBUFFER_SIZE + chunk_info(8) = 512 + 8 = 520
 	if (!context || !context->encrypted)
 		return -1;
@@ -700,7 +701,7 @@ void client_notify_characteristic(homekit_characteristic_t *ch, homekit_value_t 
 
 void client_send(client_context_t *context, byte *data, size_t data_size) {
 
-	CLIENT_DEBUG(context, "send data size=%d, encrypted=%s",
+	CLIENT_VERBOSE(context, "send data size=%d, encrypted=%s",
 			data_size, context->encrypted ? "true" : "false");
 
 	if (context->encrypted) {
@@ -733,7 +734,7 @@ void client_send_chunk(byte *data, size_t size, void *arg) {
 	memcpy(payload + offset, data, size);
 	payload[offset + size] = '\r';
 	payload[offset + size + 1] = '\n';
-	CLIENT_DEBUG(context, "client_send_chunk, size=%d, offset=%d", size, offset);
+	CLIENT_VERBOSE(context, "client_send_chunk, size=%d, offset=%d", size, offset);
 	client_send(context, payload, offset + size + 2);
 	free(payload);
 }
@@ -1433,7 +1434,7 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 	switch (tlv_get_integer_value(message, TLVType_State, -1)) {
 	case 1: {
 		CLIENT_INFO(context, "Pair Verify Step 1/2");
-		CLIENT_DEBUG(context, "Importing device Curve25519 public key");
+		CLIENT_VERBOSE(context, "Importing device Curve25519 public key");
 		tlv_t *tlv_device_public_key = tlv_get_value(message, TLVType_PublicKey);
 		if (!tlv_device_public_key) {
 			CLIENT_ERROR(context, "Device Curve25519 public key not found");
@@ -1894,11 +1895,11 @@ void write_characteristic_error(json_stream *json, uint32_t aid, uint32_t iid, i
 }
 
 void homekit_server_on_get_characteristics(client_context_t *context) {
-	CLIENT_DEBUG(context, "Get Characteristics");DEBUG_HEAP();
+	CLIENT_VERBOSE(context, "Get Characteristics");DEBUG_HEAP();
 
 	query_param_t *qp = context->endpoint_params;
 	while (qp) {
-		CLIENT_DEBUG(context, "Query parameter %s = %s", qp->name, qp->value);
+		CLIENT_VERBOSE(context, "Query parameter %s = %s", qp->name, qp->value);
 		qp = qp->next;
 	}
 
@@ -1939,7 +1940,7 @@ void homekit_server_on_get_characteristics(client_context_t *context) {
 		uint32_t aid = atoi(ch_id);
 		uint32_t iid = atoi(dot + 1);
 
-		CLIENT_DEBUG(context, "Requested characteristic info for %u.%u", aid, iid);
+		CLIENT_VERBOSE(context, "Requested characteristic info for %u.%u", aid, iid);
 		homekit_characteristic_t *ch = homekit_characteristic_by_aid_and_iid(
 				context->server->config->accessories, aid, iid);
 		if (!ch) {
@@ -1974,7 +1975,7 @@ void homekit_server_on_get_characteristics(client_context_t *context) {
 		uint32_t aid = atoi(ch_id);
 		uint32_t iid = atoi(dot + 1);
 
-		CLIENT_DEBUG(context, "Requested characteristic info for %d.%d", aid, iid);
+		CLIENT_VERBOSE(context, "Requested characteristic info for %d.%d", aid, iid);
 		homekit_characteristic_t *ch = homekit_characteristic_by_aid_and_iid(
 				context->server->config->accessories, aid, iid);
 		if (!ch) {
@@ -2418,7 +2419,7 @@ void homekit_server_on_update_characteristics(client_context_t *context, const b
 		cJSON *j_ch = cJSON_GetArrayItem(characteristics, i);
 
 		char *s = cJSON_Print(j_ch);
-		CLIENT_DEBUG(context, "Processing element %s", s);
+		CLIENT_VERBOSE(context, "Processing element %s", s);
 		free(s);
 
 		statuses[i] = process_characteristics_update(j_ch, context);
@@ -2926,7 +2927,7 @@ void homekit_client_process(client_context_t *context) {
 	size_t decrypted_size = 0;
 
 	if (context->encrypted) {
-		CLIENT_DEBUG(context, "Decrypting data");
+		CLIENT_VERBOSE(context, "Decrypting data");
 
 		client_decrypt_(context, context->data, data_len, NULL, &decrypted_size);
 
@@ -2942,7 +2943,7 @@ void homekit_client_process(client_context_t *context) {
 		if (r && context->data_available) {
 			memmove(context->data, &context->data[r], context->data_available);
 		}
-		CLIENT_DEBUG(context, "Decrypted %d bytes, available %d", decrypted_size, context->data_available);
+		CLIENT_VERBOSE(context, "Decrypted %d bytes, available %d", decrypted_size, context->data_available);
 
 		payload = decrypted;
 		payload_size = decrypted_size;
@@ -3239,7 +3240,7 @@ void homekit_mdns_init(homekit_server_t *server) {
 	// The callback is called, whenever service TXT items are needed for the given service.
 	MDNS.setDynamicServiceTxtCallback(mdns_service,
 			[](const MDNSResponder::hMDNSService p_hService) {
-				DEBUG("MDNS call DynamicServiceTxtCallback");
+				VERBOSE("MDNS call DynamicServiceTxtCallback");
 				if (running_server) {
 					MDNS.addDynamicServiceTxt(p_hService, "sf",
 							(running_server->paired) ? "0" : "1");
