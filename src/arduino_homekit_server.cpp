@@ -3361,7 +3361,7 @@ void homekit_server_init(homekit_server_config_t *config) {
 	if (config->setupId) {
 		const char *p = config->setupId;
 		if (strlen(p) != 4
-				|| !(ISBASE36(p[0]) && ISBASE36(p[1]) && ISBASE36(p[2]) && ISBASE36(p[3]))) {
+				|| !(ISBASE62(p[0]) && ISBASE62(p[1]) && ISBASE62(p[2]) && ISBASE62(p[3]))) {
 			ERROR("Error initializing HomeKit accessory server: " "invalid setup ID format");
 			return;
 		}

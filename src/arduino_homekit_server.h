@@ -223,6 +223,7 @@ typedef struct _client_event {
 
 #define ISDIGIT(x) isdigit((unsigned char)(x))
 #define ISBASE36(x) (isdigit((unsigned char)(x)) || (x >= 'A' && x <= 'Z'))
+#define ISBASE62(x) (isdigit((unsigned char)(x)) || (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z'))
 
 
 void arduino_homekit_setup(homekit_server_config_t *config);
