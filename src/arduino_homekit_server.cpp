@@ -579,6 +579,8 @@ int client_send_encrypted_(client_context_t *context,
 	size_t payload_offset = 0;
 
 	while (payload_offset < size) {
+		system_soft_wdt_feed(); // precaution against WDT timeout as we have crypto in this loop
+		esp_yield(); // Let any system task run (like WiFi)
 		size_t chunk_size = size - payload_offset;
 		if (chunk_size > 1024)
 			chunk_size = 1024;
@@ -636,6 +638,8 @@ int client_decrypt_(client_context_t *context,
 	size_t decrypted_offset = 0;
 
 	while (payload_offset < payload_size) {
+		system_soft_wdt_feed(); // precaution against WDT timeout as we have crypto in this loop
+		esp_yield(); // Let any system task run (like WiFi)
 		size_t chunk_size = payload[payload_offset] + payload[payload_offset + 1] * 256;
 		if (chunk_size + 18 > payload_size - payload_offset) {
 			// Unfinished chunk
@@ -795,6 +799,8 @@ void send_tlv_error_response(client_context_t *context, int state, TLVError erro
 
 void send_tlv_response(client_context_t *context, tlv_values_t *values) {
 	CLIENT_DEBUG(context, "Sending TLV response");TLV_DEBUG(values);
+	system_soft_wdt_feed(); // precaution against WDT timeout
+	esp_yield(); // Let any system task run (like WiFi)
 
 	size_t payload_size = 0;
 	tlv_format(values, NULL, &payload_size);
@@ -1017,6 +1023,8 @@ void homekit_server_on_pair_setup(client_context_t *context, const byte *data, s
 
 		int r = 0;
 		size_t salt_size = 0;
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		crypto_srp_get_salt(context->server->pairing_context->srp, NULL, &salt_size);
 		byte *salt = (byte*) malloc(salt_size);
 		r = crypto_srp_get_salt(context->server->pairing_context->srp, salt, &salt_size);
@@ -1079,6 +1087,8 @@ void homekit_server_on_pair_setup(client_context_t *context, const byte *data, s
 		CLIENT_DEBUG(context, "Verifying peer's proof");
 
 		//watchdog_check_begin();
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		r = crypto_srp_verify(context->server->pairing_context->srp, proof->value, proof->size);
 		//watchdog_check_end("crypto_srp_verify");// 1ms
 
@@ -1115,6 +1125,8 @@ void homekit_server_on_pair_setup(client_context_t *context, const byte *data, s
 		const char salt1[] = "Pair-Setup-Encrypt-Salt";
 		const char info1[] = "Pair-Setup-Encrypt-Info";
 
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		r = crypto_srp_hkdf(context->server->pairing_context->srp, (byte*) salt1, sizeof(salt1) - 1,
 				(byte*) info1, sizeof(info1) - 1, shared_secret, &shared_secret_size);
 		if (r) {
@@ -1201,6 +1213,8 @@ void homekit_server_on_pair_setup(client_context_t *context, const byte *data, s
 		ed25519_key device_key;
 		crypto_ed25519_init(&device_key);
 
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		r = crypto_ed25519_import_public_key(&device_key, tlv_device_public_key->value,
 				tlv_device_public_key->size);
 		if (r) {
@@ -1313,6 +1327,8 @@ void homekit_server_on_pair_setup(client_context_t *context, const byte *data, s
 				accessory_public_key_size);
 
 		CLIENT_DEBUG(context, "Generating accessory signature");DEBUG_HEAP();
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		size_t accessory_signature_size = 0;
 		crypto_ed25519_sign(&context->server->accessory_key, accessory_info, accessory_info_size,
 		NULL, &accessory_signature_size);
@@ -1441,6 +1457,9 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 			send_tlv_error_response(context, 2, TLVError_Unknown);
 			break;
 		}
+
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		curve25519_key device_key;
 		r = crypto_curve25519_init(&device_key);
 		if (r) {
@@ -1482,6 +1501,8 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 		}
 
 		CLIENT_DEBUG(context, "Generating Curve25519 shared secret");
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		size_t shared_secret_size = 0;
 		crypto_curve25519_shared_secret(&my_key, &device_key, NULL, &shared_secret_size);
 
@@ -1574,6 +1595,8 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 		}
 
 		CLIENT_DEBUG(context, "Encrypting response");
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		size_t encrypted_response_data_size = 0;
 		crypto_chacha20poly1305_encrypt(session_key, (byte*) "\x0\x0\x0\x0PV-Msg02", NULL, 0,
 				sub_response_data, sub_response_data_size,
@@ -1644,6 +1667,8 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 		}
 
 		CLIENT_DEBUG(context, "Decrypting payload");
+		system_soft_wdt_feed(); // precaution against WDT timeout
+		esp_yield(); // Let any system task run (like WiFi)
 		size_t decrypted_data_size = 0;
 		crypto_chacha20poly1305_decrypt(context->verify_context->session_key,
 				(byte*) "\x0\x0\x0\x0PV-Msg03", NULL, 0, tlv_encrypted_data->value,
@@ -2692,6 +2717,8 @@ void homekit_server_on_pairings(client_context_t *context, const byte *data, siz
 		byte public_key[32];
 
 		while (!homekit_storage_next_pairing(&it, &pairing)) {
+			system_soft_wdt_feed(); // precaution against WDT timeout as we have crypto in this loop
+			esp_yield(); // Let any system task run (like WiFi)
 			if (!first) {
 				tlv_add_value(response, TLVType_Separator, NULL, 0);
 			}
