@@ -2014,8 +2014,13 @@ void homekit_server_on_get_characteristics(client_context_t *context) {
 		}
 		char * valstr;
 		homekit_value_print(&valstr, &ch->value);
-		CLIENT_INFO(context, "Requested characteristic info for %d.%d %s %s %s", aid, iid, 
-			ch->service->description, ch->description, valstr);
+		if (aid == 1 && iid == 6) {
+			// Thes accessory information requests come in once a minute and fill up the log
+		    CLIENT_VERBOSE(context, "Requested characteristic info for %d.%d %s %s %s", aid, iid, ch->service->description, ch->description, valstr);
+		}
+		else {
+		    CLIENT_INFO(context, "Requested characteristic info for %d.%d %s %s %s", aid, iid, ch->service->description, ch->description, valstr);
+		}
 		free(valstr);
 		json_object_start(json);
 		write_characteristic_json(json, context, ch, format, NULL);
