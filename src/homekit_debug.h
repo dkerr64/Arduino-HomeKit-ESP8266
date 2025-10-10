@@ -46,11 +46,11 @@ extern "C"
         if (level <= logLevel)                           \
             logToBuffer_P(PSTR(message), ##__VA_ARGS__); \
     } while (0)
-#define ESP_LOGE(tag, message, ...) RATGDO_PRINTF(ESP_LOG_ERROR, "E (%lu) %s: " message "\r\n", millis(), tag, ##__VA_ARGS__)
-#define ESP_LOGW(tag, message, ...) RATGDO_PRINTF(ESP_LOG_WARN, "W (%lu) %s: " message "\r\n", millis(), tag, ##__VA_ARGS__)
-#define ESP_LOGI(tag, message, ...) RATGDO_PRINTF(ESP_LOG_INFO, "I (%lu) %s: " message "\r\n", millis(), tag, ##__VA_ARGS__)
-#define ESP_LOGD(tag, message, ...) RATGDO_PRINTF(ESP_LOG_DEBUG, "D (%lu) %s: " message "\r\n", millis(), tag, ##__VA_ARGS__)
-#define ESP_LOGV(tag, message, ...) RATGDO_PRINTF(ESP_LOG_VERBOSE, "V (%lu) %s: " message "\r\n", millis(), tag, ##__VA_ARGS__)
+#define ESP_LOGE(tag, message, ...) RATGDO_PRINTF(ESP_LOG_ERROR, "E (%lu) %s: " message "\n", millis(), tag, ##__VA_ARGS__)
+#define ESP_LOGW(tag, message, ...) RATGDO_PRINTF(ESP_LOG_WARN, "W (%lu) %s: " message "\n", millis(), tag, ##__VA_ARGS__)
+#define ESP_LOGI(tag, message, ...) RATGDO_PRINTF(ESP_LOG_INFO, "I (%lu) %s: " message "\n", millis(), tag, ##__VA_ARGS__)
+#define ESP_LOGD(tag, message, ...) RATGDO_PRINTF(ESP_LOG_DEBUG, "D (%lu) %s: " message "\n", millis(), tag, ##__VA_ARGS__)
+#define ESP_LOGV(tag, message, ...) RATGDO_PRINTF(ESP_LOG_VERBOSE, "V (%lu) %s: " message "\n", millis(), tag, ##__VA_ARGS__)
 
 #define VERBOSE(message, ...) ESP_LOGV("HomeKit", "(%s) " message, __func__, ##__VA_ARGS__)
 #define DEBUG(message, ...) ESP_LOGD("HomeKit", "(%s) " message, __func__, ##__VA_ARGS__)
