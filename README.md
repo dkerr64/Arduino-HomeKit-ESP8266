@@ -142,8 +142,14 @@ After memory optimization in v1.1.0:
 
 * Check your serial output with [example_serial_output.txt](https://raw.github.com/Mixiaoxiao/Arduino-HomeKit-ESP8266/master/extras/example_serial_output_v1.1.0.txt)
 
-
 ## Change Log
+
+#### v1.5.1
+
+* Advertise pv=1.1 (HAP R2) in mDNS
+* Guard accept handler against RST/FIN race in keepAlive
+* Move socket write log messages to before potentially failing function calls
+* Revert change that skipped ED25519 certificate verification... may address no-response issues.
 
 #### v1.5.0
 
