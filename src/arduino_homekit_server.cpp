@@ -3287,7 +3287,9 @@ void homekit_mdns_init(homekit_server_t *server) {
 			}
 	);
 	MDNS.addServiceTxt(mdns_service, "md", model->value.string_value);
-	MDNS.addServiceTxt(mdns_service, "pv", "1.0");
+	// HAP R2 (2018+) protocol version. Most modern HK accessories advertise
+	// pv=1.1. The Mixiaoxiao lib was originally HAP R1.
+	MDNS.addServiceTxt(mdns_service, "pv", "1.1");
 	MDNS.addServiceTxt(mdns_service, "id", server->accessory_id);
 	//"c#" is a DynamicServiceTxt
 	//Current configuration number. Required.
