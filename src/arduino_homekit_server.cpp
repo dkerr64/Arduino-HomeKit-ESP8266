@@ -680,7 +680,7 @@ void client_notify_characteristic(homekit_characteristic_t *ch, homekit_value_t 
 	}
 	char * valstr;
 	homekit_value_print(&valstr, &value);
-	CLIENT_INFO(client, "Got characteristic %d.%d %s %s change event %s",
+	CLIENT_DEBUG(client, "Got characteristic %d.%d %s %s change event %s",
 			ch->service->accessory->id, ch->id, ch->service->description, ch->description, valstr);
 	free(valstr);
 
@@ -1449,7 +1449,7 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 	int r;
 	switch (tlv_get_integer_value(message, TLVType_State, -1)) {
 	case 1: {
-		CLIENT_INFO(context, "Pair Verify Step 1/2");
+		CLIENT_DEBUG(context, "Pair Verify Step 1/2");
 		CLIENT_VERBOSE(context, "Importing device Curve25519 public key");
 		tlv_t *tlv_device_public_key = tlv_get_value(message, TLVType_PublicKey);
 		if (!tlv_device_public_key) {
@@ -1649,7 +1649,7 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 		break;
 	}
 	case 3: {
-		CLIENT_INFO(context, "Pair Verify Step 2/2");
+		CLIENT_DEBUG(context, "Pair Verify Step 2/2");
 
 		if (!context->verify_context) {
 			CLIENT_ERROR(context, "Failed to verify: no state 1 data");
@@ -1734,7 +1734,7 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 			break;
 		}
 
-		CLIENT_INFO(context, "Found pairing with %s", device_id);
+		CLIENT_DEBUG(context, "Found pairing with %s", device_id);
 		free(device_id);
 
 		byte permissions = pairing.permissions;
@@ -1804,7 +1804,7 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 		context->encrypted = true;
 
 		HOMEKIT_NOTIFY_EVENT(context->server, HOMEKIT_EVENT_CLIENT_VERIFIED);
-		CLIENT_INFO(context, "Verification successful, secure session established");
+		CLIENT_DEBUG(context, "Verification successful, secure session established");
 		context->step = HOMEKIT_CLIENT_STEP_PAIR_VERIFY_2OF2;
 		break;
 	}
@@ -1815,7 +1815,7 @@ void homekit_server_on_pair_verify(client_context_t *context, const byte *data, 
 	}
 	tlv_free(message);
 	DEBUG_TIME_END("pair_verify");
-	INFO_HEAP();
+	DEBUG_HEAP();
 
 #ifdef HOMEKIT_OVERCLOCK_PAIR_VERIFY
     homekit_overclock_end();
@@ -1826,7 +1826,7 @@ void homekit_client_process(client_context_t *context);
 
 void homekit_server_on_get_accessories(client_context_t *context) {
 	VERBOSE_TIME_BEGIN();
-	CLIENT_INFO(context, "Get Accessories");DEBUG_HEAP();
+	CLIENT_DEBUG(context, "Get Accessories");DEBUG_HEAP();
 	client_send_P(context, json_200_response_headers_progmem);
 
 	CLIENT_DEBUG(context, "Get Accessories, start send json body");
@@ -2019,7 +2019,7 @@ void homekit_server_on_get_characteristics(client_context_t *context) {
 		    CLIENT_VERBOSE(context, "Requested characteristic info for %d.%d %s %s %s", aid, iid, ch->service->description, ch->description, valstr);
 		}
 		else {
-		    CLIENT_INFO(context, "Requested characteristic info for %d.%d %s %s %s", aid, iid, ch->service->description, ch->description, valstr);
+		    CLIENT_DEBUG(context, "Requested characteristic info for %d.%d %s %s %s", aid, iid, ch->service->description, ch->description, valstr);
 		}
 		free(valstr);
 		json_object_start(json);
@@ -2371,7 +2371,7 @@ HAPStatus process_characteristics_update(const cJSON *j_ch, client_context_t *co
 		}
 		char * valstr;
 		homekit_value_print(&valstr, &ch->value);
-		CLIENT_INFO(context, "Updating characteristic %d.%d %s %s %s", 
+		CLIENT_DEBUG(context, "Updating characteristic %d.%d %s %s %s", 
 		   aid, iid, ch->service->description, ch->description, valstr);
 		free(valstr);
 
@@ -3074,9 +3074,9 @@ client_context_t* homekit_server_accept_client(homekit_server_t *server) {
 		wifiClient->keepAlive(HOMEKIT_SOCKET_KEEPALIVE_IDLE_SEC,
 			HOMEKIT_SOCKET_KEEPALIVE_INTERVAL_SEC, HOMEKIT_SOCKET_KEEPALIVE_IDLE_COUNT);
 		wifiClient->setTimeout(HOMEKIT_SOCKET_TIMEOUT);
-		INFO("Setting Timeout to 500ms");
+		DEBUG("Setting Timeout to 500ms");
 	} else {
-		// During the pairing process, relax the session timeout and be more agressive about keepalives
+		// During the pairing process, relax the session timeout and be more aggressive about keepalives
 		wifiClient->keepAlive(5, 5, 20);
 		wifiClient->setTimeout(90000);
 		INFO("Setting Timeout to 90 s");
