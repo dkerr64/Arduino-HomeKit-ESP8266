@@ -144,6 +144,10 @@ After memory optimization in v1.1.0:
 
 ## Change Log
 
+#### v1.5.2
+
+* Reduce runtime log clutter by moving several messages from INFO() to DEBUG() level
+
 #### v1.5.1
 
 * Advertise pv=1.1 (HAP R2) in mDNS
