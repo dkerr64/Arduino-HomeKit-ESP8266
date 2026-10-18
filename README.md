@@ -144,6 +144,12 @@ After memory optimization in v1.1.0:
 
 ## Change Log
 
+#### v1.5.3
+
+* Fix for CVE-2019-15605 reported in https://github.com/Mixiaoxiao/Arduino-HomeKit-ESP8266/pull/268 and cherry picked to this repo
+* Fix for CVE-2023-36328 reported in https://github.com/Mixiaoxiao/Arduino-HomeKit-ESP8266/pull/267 and cherry picked to this repo
+* Added air conditioner example proposed in https://github.com/Mixiaoxiao/Arduino-HomeKit-ESP8266/pull/238 and cherry picked to this repo
+
 #### v1.5.2
 
 * Reduce runtime log clutter by moving several messages from INFO() to DEBUG() level
